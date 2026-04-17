@@ -16,6 +16,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: regnermax36-glitch/CheckFirm
+        fetch-depth: 0
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -25,28 +26,61 @@ jobs:
     
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: wrapper
     
-    - name: Make gradlew executable
+    - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     
-    - name: Create dummy keystore.properties
+    - name: Remove keystore.properties reference from build.gradle.kts
       run: |
-        cat > keystore.properties << 'EOF'
-        storeFile=dummy.keystore
-        storePassword=dummy
-        keyAlias=dummy
-        keyPassword=dummy
-        EOF
-        
-        # Create dummy keystore file
-        keytool -genkey -v -keystore dummy.keystore -alias dummy -keyalg RSA -keysize 2048 -validity 10000 -storepass dummy -keypass dummy -dname "CN=CI"
+        # Comment out any keystore.properties loading in app/build.gradle.kts
+        if [ -f app/build.gradle.kts ]; then
+          # Create a backup
+          cp app/build.gradle.kts app/build.gradle.kts.bak
+          
+          # Comment out lines that load keystore.properties
+          sed -i 's/^\(.*loadKeystoreProperties.*\)$/\/\/ \1/' app/build.gradle.kts
+          sed -i 's/^\(.*keystore\.properties.*\)$/\/\/ \1/' app/build.gradle.kts
+          sed -i 's/^\(.*file("keystore\.properties").*\)$/\/\/ \1/' app/build.gradle.kts
+          
+          # Remove any signingConfig that references keystore for debug builds
+          sed -i '/signingConfigs/,/}/ {
+            s/signingConfigs(create("release"))/\/\/ &/
+            s/signingConfig = signingConfigs.getByName("release")/\/\/ &/
+          }' app/build.gradle.kts
+          
+          echo "Patched build.gradle.kts successfully"
+        else
+          echo "app/build.gradle.kts not found"
+        fi
     
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug --no-daemon
+    - name: Create minimal gradle.properties
+      run: |
+        cat > gradle.properties << 'EOF'
+        org.gradle.jvmargs=-Xmx2048m
+        android.useAndroidX=true
+        android.enableJetifier=true
+        android.nonTransitiveRClass=false
+        android.nonFinalResIds=false
+        EOF
+    
+    - name: Build Debug APK only
+      run: |
+        ./gradlew assembleDebug --no-daemon --stacktrace
+    
+    - name: List generated APKs
+      run: |
+        echo "=== Generated APK Files ==="
+        find app/build/outputs -name "*.apk" -type f 2>/dev/null || echo "No APKs found in app/build/outputs"
+        find . -path "*/build/outputs/*" -name "*.apk" -type f 2>/dev/null || echo "No APKs found anywhere"
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: CheckFirm-Debug
-        path: app/build/outputs/apk/debug/*.apk
+        path: |
+          app/build/outputs/apk/debug/*.apk
+          **/build/outputs/apk/debug/*.apk
         retention-days: 30
+        if-no-files-found: warn
