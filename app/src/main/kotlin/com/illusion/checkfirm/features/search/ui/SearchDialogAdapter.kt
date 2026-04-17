@@ -3,10 +3,13 @@ package com.illusion.checkfirm.features.search.ui
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.illusion.checkfirm.data.model.local.DeviceItem
 import com.illusion.checkfirm.databinding.RowMainSearchDialogFirmwareItemsBinding
 
 class SearchDialogAdapter(
-    private val firmwareData: Array<String>
+    private val device: DeviceItem,
+    private val firmwareData: Array<String>,
+    private val onDownloadClick: (String, String, String) -> Unit
 ) : RecyclerView.Adapter<SearchDialogViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchDialogViewHolder {
@@ -18,7 +21,7 @@ class SearchDialogAdapter(
     }
 
     override fun onBindViewHolder(holder: SearchDialogViewHolder, position: Int) {
-        holder.bind(firmwareData[position])
+        holder.bind(device, firmwareData[position], onDownloadClick)
     }
 
     override fun getItemCount(): Int {

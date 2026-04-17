@@ -14,43 +14,31 @@ android {
 
     sourceSets {
         getByName("main") {
-            java {
-                srcDir("src/divider/kotlin")
-                srcDir("src/edittext/kotlin")
-                srcDir("src/spinner/kotlin")
-                srcDir("src/switch/kotlin")
-                srcDir("src/tab/kotlin")
-            }
-
-            res {
-                srcDir("src/checkbox/res")
-				srcDir("src/divider/res")
-                srcDir("src/edittext/res")
-				srcDir("src/fab/res")
-				srcDir("src/progress/res")
-				srcDir("src/radiobutton/res")
-				srcDir("src/spinner/res")
-                srcDir("src/switch/res")
-                srcDir("src/tab/res")
-            }
+            java.srcDirs(
+                "src/divider/kotlin",
+                "src/edittext/kotlin",
+                "src/spinner/kotlin",
+                "src/switch/kotlin",
+                "src/tab/kotlin"
+            )
+            res.srcDirs(
+                "src/main/res",
+                "src/checkbox/res",
+                "src/divider/res",
+                "src/edittext/res",
+                "src/fab/res",
+                "src/progress/res",
+                "src/radiobutton/res",
+                "src/spinner/res",
+                "src/switch/res",
+                "src/tab/res"
+            )
         }
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-        release {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+        debug { isMinifyEnabled = false }
+        release { isMinifyEnabled = false }
     }
 
     compileOptions {
@@ -66,6 +54,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        dataBinding = true
     }
 }
 

@@ -95,11 +95,23 @@
                 style="@style/ClickableLayout"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintBottom_toBottomOf="@id/latest_firmware"
+                app:layout_constraintEnd_toStartOf="@id/download_button"
+                app:layout_constraintTop_toTopOf="@id/latest_firmware"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Circle"
+                app:srcCompat="@drawable/ic_web" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/download_button"
+                style="@style/ClickableLayout"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 app:layout_constraintBottom_toBottomOf="@id/latest_firmware"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/latest_firmware"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Circle"
-                app:srcCompat="@drawable/ic_web" />
+                app:srcCompat="@drawable/ic_download" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -16,9 +16,7 @@ plugins {
 
 android {
     namespace = "com.illusion.checkfirm"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.illusion.checkfirm"
@@ -96,6 +94,7 @@ dependencies {
     implementation(libs.ksoup)
     implementation(libs.recyclerview)
     implementation(libs.splashscreen)
+    implementation(libs.ksoup)
 
     implementation(libs.bundles.angus)
     implementation(libs.bundles.bases)
