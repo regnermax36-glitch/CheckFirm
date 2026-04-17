@@ -177,16 +177,16 @@ class SearchDialog(private val isOfficial: Boolean, private val searchResult: Se
                 searchResult.firmware.testFirmwareItem.latestFirmware
             }
             if (firmware.isNotBlank()) {
-                startDownload(searchResult.device.model, searchResult.device.csc, firmware)
+                startDownload(searchResult.device.model, searchResult.device.csc, firmware, isOfficial)
             }
         }
     }
 
-    private fun startDownload(model: String, csc: String, firmware: String) {
+    private fun startDownload(model: String, csc: String, firmware: String, isOfficial: Boolean) {
         lifecycleScope.launch {
             Toast.makeText(requireContext(), R.string.download_starting, Toast.LENGTH_SHORT).show()
             val fetcher = FotaUrlFetcher()
-            val url = fetcher.fetchDownloadUrl(model, csc, firmware)
+            val url = fetcher.fetchDownloadUrl(model, csc, firmware, !isOfficial)
             if (url != null) {
                 val downloader = FastDownloader()
                 val destination = File(requireContext().getExternalFilesDir(null), "$firmware.zip")
@@ -216,7 +216,7 @@ class SearchDialog(private val isOfficial: Boolean, private val searchResult: Se
                     searchResult.firmware.officialFirmwareItem.previousFirmware.values.toTypedArray()
                 }
 
-            binding!!.dynamicRecyclerView.adapter = SearchDialogAdapter(searchResult.device, previousArray) { m, c, f -> startDownload(m, c, f) }
+            binding!!.dynamicRecyclerView.adapter = SearchDialogAdapter(searchResult.device, previousArray) { m, c, f -> startDownload(m, c, f, true) }
         } else {
             val previousArray =
                 if (searchResult.firmware.testFirmwareItem.previousFirmware.isEmpty()) {
@@ -224,7 +224,7 @@ class SearchDialog(private val isOfficial: Boolean, private val searchResult: Se
                 } else {
                     searchResult.firmware.testFirmwareItem.previousFirmware.values.toTypedArray()
                 }
-            binding!!.dynamicRecyclerView.adapter = SearchDialogAdapter(searchResult.device, previousArray) { m, c, f -> startDownload(m, c, f) }
+            binding!!.dynamicRecyclerView.adapter = SearchDialogAdapter(searchResult.device, previousArray) { m, c, f -> startDownload(m, c, f, false) }
 
             if (searchResult.firmware.testFirmwareItem.betaFirmware.isEmpty()) {
                 binding!!.tabLayout.visibility = View.GONE
@@ -235,14 +235,14 @@ class SearchDialog(private val isOfficial: Boolean, private val searchResult: Se
                 binding!!.tabPreviousFirmware.setOnClickListener {
                     binding!!.tabPreviousFirmware.setTabSelected(true)
                     binding!!.tabBetaFirmware.setTabSelected(false)
-                    binding!!.dynamicRecyclerView.adapter = SearchDialogAdapter(searchResult.device, previousArray) { m, c, f -> startDownload(m, c, f) }
+                    binding!!.dynamicRecyclerView.adapter = SearchDialogAdapter(searchResult.device, previousArray) { m, c, f -> startDownload(m, c, f, false) }
                 }
 
                 binding!!.tabBetaFirmware.setOnClickListener {
                     binding!!.tabPreviousFirmware.setTabSelected(false)
                     binding!!.tabBetaFirmware.setTabSelected(true)
                     binding!!.dynamicRecyclerView.adapter =
-                        SearchDialogAdapter(searchResult.device, searchResult.firmware.testFirmwareItem.betaFirmware.values.toTypedArray()) { m, c, f -> startDownload(m, c, f) }
+                        SearchDialogAdapter(searchResult.device, searchResult.firmware.testFirmwareItem.betaFirmware.values.toTypedArray()) { m, c, f -> startDownload(m, c, f, false) }
                 }
             }
         }

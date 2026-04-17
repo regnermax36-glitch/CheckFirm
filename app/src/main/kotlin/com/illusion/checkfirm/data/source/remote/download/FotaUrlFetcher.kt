@@ -11,9 +11,10 @@ import kotlinx.coroutines.withContext
 class FotaUrlFetcher {
     private val client = HttpClient(Android)
 
-    suspend fun fetchDownloadUrl(model: String, csc: String, firmware: String): String? = withContext(Dispatchers.IO) {
+    suspend fun fetchDownloadUrl(model: String, csc: String, firmware: String, isTest: Boolean): String? = withContext(Dispatchers.IO) {
         try {
-            val response = client.get("https://fota-cloud-dn.ospserver.net/firmware/$csc/$model/version.xml")
+            val suffix = if (isTest) "version.test.xml" else "version.xml"
+            val response = client.get("https://fota-cloud-dn.ospserver.net/firmware/$csc/$model/$suffix")
             if (response.status.value == 200) {
                 val body = response.body<String>()
                 val doc = Ksoup.parse(html = body)
