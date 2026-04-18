@@ -1,24 +1,83 @@
-steps:
+name: Android Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # This ensures all 'run' commands happen inside the maxregner folder
+    defaults:
+      run:
+        working-directory: ./maxregner
+
+    steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        # Disable caching for this run since files don't exist yet
-        # cache: gradle 
+        # Broad search to find build files in the subdirectory for caching
+        cache-dependency-path: "**/*.gradle*"
+        cache: gradle
 
-    - name: Generate Gradle Wrapper
-      working-directory: ./maxregner
+    - name: Setup Gradle Wrapper
       run: |
-        # If gradlew doesn't exist, use the pre-installed 'gradle' on the runner
+        # If the wrapper is missing in the subfolder, generate it
         if [ ! -f "gradlew" ]; then
+          echo "Gradlew not found in maxregner/, generating..."
           gradle wrapper
         fi
         chmod +x gradlew
 
+    - name: Create keystore.properties
+      run: |
+        cat > keystore.properties <<'EOF'
+        storeFile=dummy.keystore
+        storePassword=dummy_password
+        keyAlias=dummy_alias
+        keyPassword=dummy_password
+        EOF
+
+    - name: Create dummy keystore file
+      run: |
+        keytool -genkey -v -keystore dummy.keystore -alias dummy_alias -keyalg RSA -keysize 2048 -validity 10000 -storepass dummy_password -keypass dummy_password -dname "CN=CI"
+
     - name: Build with Gradle
-      working-directory: ./maxregner
       run: ./gradlew assembleDebug --no-daemon
+
+    - name: Upload APK to Gofile.io
+      run: |
+        # find starts looking from the current working directory (maxregner/)
+        APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+        if [ -n "$APK_PATH" ]; then
+          echo "Uploading $APK_PATH..."
+          SERVER=$(curl -s https://api.gofile.io/getServer | grep -oP '"server":"\K[^"]+')
+          if [ -n "$SERVER" ]; then
+            RESPONSE=$(curl -F "file=@$APK_PATH" "https://$SERVER.gofile.io/uploadFile")
+            DOWNLOAD_LINK=$(echo "$RESPONSE" | grep -oP '"downloadPage":"\K[^"]+')
+            echo "::notice::APK Download Link: $DOWNLOAD_LINK"
+          else
+            echo "Failed to get Gofile server"
+          fi
+        else
+          echo "APK not found"
+          exit 1
+        fi
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        # 'path' is relative to the repository root, not 'working-directory'
+        path: maxregner/app/build/outputs/apk/debug/*.apk
