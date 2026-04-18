@@ -10,5 +10,6 @@ data class OfficialFirmwareItem(
     var previousFirmware: SortedMap<String, String> = sortedMapOf(),
     var deviceName: String = "",
     var releaseDate: String = "",
-    var androidVersion: String = "", var downloadUrl: String = "", var downloadUrl: String = "", var downloadUrl: String = "", var downloadUrl: String = ""
+    var androidVersion: String = "",
+    var downloadUrl: String = ""
 ) : Parcelable

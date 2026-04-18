@@ -5,6 +5,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -14,7 +16,9 @@ class FotaUrlFetcher {
     suspend fun fetchDownloadUrl(model: String, csc: String, firmware: String, isTest: Boolean): String? = withContext(Dispatchers.IO) {
         try {
             val suffix = if (isTest) "version.test.xml" else "version.xml"
-            val response = client.get("https://fota-cloud-dn.ospserver.net/firmware/$csc/$model/$suffix")
+            val response = client.get("https://fota-cloud-dn.ospserver.net/firmware/$csc/$model/$suffix") {
+                header(HttpHeaders.UserAgent, "FOTA-Cloud-DN")
+            }
             if (response.status.value == 200) {
                 val body = response.body<String>()
                 val doc = Ksoup.parse(html = body)

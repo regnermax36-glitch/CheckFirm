@@ -91,10 +91,11 @@ room {
 dependencies {
     implementation(project(":oneui"))
     implementation(libs.appcompat)
-    implementation(libs.ksoup)
+
     implementation(libs.recyclerview)
     implementation(libs.splashscreen)
     implementation(libs.ksoup)
+
 
     implementation(libs.bundles.angus)
     implementation(libs.bundles.bases)

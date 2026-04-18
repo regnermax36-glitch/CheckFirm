@@ -52,10 +52,6 @@
     <string name="download_starting">Download starting…</string>
     <string name="download_completed">Download completed!</string>
     <string name="download_failed">Download failed.</string>
-    <string name="download">Download</string>
-    <string name="download_starting">Download starting…</string>
-    <string name="download_completed">Download completed!</string>
-    <string name="download_failed">Download failed.</string>
     <string name="search_no_history">No history</string>
     <string name="search_add_bookmark">Add bookmark</string>
     <string name="search_result_tab_previous">Previous</string>

@@ -23,6 +23,7 @@ class FastDownloader(private val client: HttpClient = HttpClient(Android)) {
         val headResponse = client.request(url) {
             method = HttpMethod.Get
             header(HttpHeaders.Range, "bytes=0-0")
+            header(HttpHeaders.UserAgent, "FOTA-Cloud-DN")
         }
 
         val contentRange = headResponse.headers[HttpHeaders.ContentRange]
@@ -49,6 +50,7 @@ class FastDownloader(private val client: HttpClient = HttpClient(Android)) {
     private suspend fun downloadChunk(url: String, destination: File, start: Long, end: Long) = withContext(Dispatchers.IO) {
         val response = client.get(url) {
             header(HttpHeaders.Range, "bytes=$start-$end")
+            header(HttpHeaders.UserAgent, "FOTA-Cloud-DN")
         }
 
         val channel = response.bodyAsChannel()
