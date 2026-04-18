@@ -10,6 +10,7 @@ data class TestFirmwareItem(
     var previousFirmware: SortedMap<String, String> = sortedMapOf(),
     var betaFirmware: SortedMap<String, String> = sortedMapOf(),
     var discoveryDate: String = "",
+    var downloadUrl: String = "",
     var updateType: UpdateType = UpdateType.UNKNOWN,
     var androidVersion: String = "",
     var isDowngradable: Boolean = false,
