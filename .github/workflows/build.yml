@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # This sets the base directory for all 'run' commands
+    # We define the working directory here for all 'run' steps
     defaults:
       run:
         working-directory: ./maxregner
@@ -21,16 +21,16 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: set up JDK 17
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
-        # Use a more explicit path and ensure it's relative to the workspace root
+        # Fixed path: Use the absolute relative path from the root
         cache-dependency-path: |
-          maxregner/*.gradle*
+          maxregner/**/*.gradle*
           maxregner/gradle/wrapper/gradle-wrapper.properties
+        cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -53,12 +53,18 @@ jobs:
 
     - name: Upload APK to Gofile.io
       run: |
+        # Look for APK inside the current working directory (maxregner)
         APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
         if [ -n "$APK_PATH" ]; then
+          echo "Uploading $APK_PATH..."
           SERVER=$(curl -s https://api.gofile.io/getServer | grep -oP '"server":"\K[^"]+')
-          RESPONSE=$(curl -F "file=@$APK_PATH" "https://$SERVER.gofile.io/uploadFile")
-          DOWNLOAD_LINK=$(echo "$RESPONSE" | grep -oP '"downloadPage":"\K[^"]+')
-          echo "::notice::APK Download Link: $DOWNLOAD_LINK"
+          if [ -n "$SERVER" ]; then
+            RESPONSE=$(curl -F "file=@$APK_PATH" "https://$SERVER.gofile.io/uploadFile")
+            DOWNLOAD_LINK=$(echo "$RESPONSE" | grep -oP '"downloadPage":"\K[^"]+')
+            echo "::notice::APK Download Link: $DOWNLOAD_LINK"
+          else
+            echo "Failed to get Gofile server"
+          fi
         else
           echo "APK not found"
           exit 1
@@ -68,4 +74,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
+        # upload-artifact ignores 'defaults.run', so use the full path
         path: maxregner/app/build/outputs/apk/debug/*.apk
