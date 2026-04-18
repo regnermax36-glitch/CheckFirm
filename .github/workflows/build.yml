@@ -7,9 +7,14 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Apply the working directory globally to all run steps in this job
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: maxregner
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -20,6 +25,8 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        # Point the cache to the build.gradle in the subdirectory
+        cache-dependency-path: maxregner/*.gradle*
         cache: gradle
 
     - name: Grant execute permission for gradlew
@@ -43,6 +50,7 @@ jobs:
 
     - name: Upload APK to Gofile.io
       run: |
+        # This path is now relative to maxregner/
         APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
         if [ -n "$APK_PATH" ]; then
           echo "Uploading $APK_PATH..."
@@ -56,10 +64,13 @@ jobs:
           fi
         else
           echo "APK not found"
+          exit 1
         fi
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
-        path: app/build/outputs/apk/debug/*.apk
+        # Note: 'path' for actions does not respect 'working-directory', 
+        # so we provide the full path from the repo root.
+        path: maxregner/app/build/outputs/apk/debug/*.apk
