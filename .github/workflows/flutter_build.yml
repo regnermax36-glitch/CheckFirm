@@ -2,7 +2,7 @@ name: Flutter Build APK
 
 on:
   push:
-    branches: [ main, master, feature/maxregner-ai-agent-v2-10415236592970828652 ]
+    branches: [ main, master, "feature/**", "fix/**" ]
   pull_request:
     branches: [ main, master ]
 
@@ -18,10 +18,7 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        cache: 'gradle'
-        cache-dependency-path: |
-          maxregner/android/*.gradle*
-          maxregner/android/gradle/wrapper/gradle-wrapper.properties
+
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
@@ -32,12 +29,17 @@ jobs:
       run: |
         cd maxregner
         flutter pub get
-  
+
+    - name: Run tests
+      run: |
+        cd maxregner
+        flutter test
 
     - name: Build APK
       run: |
         cd maxregner
         flutter build apk --release
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
