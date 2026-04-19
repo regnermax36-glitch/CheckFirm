@@ -1,13 +1,40 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GeminiService {
   GenerativeModel? _model;
-  ChatSession? _chat;
   String? _apiKey;
-  final _storage = const FlutterSecureStorage();
 
-  final _systemPrompt = """
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _apiKey = prefs.getString('gemini_api_key');
+    if (_apiKey != null && _apiKey!.isNotEmpty) {
+      _model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: _apiKey!,
+        requestOptions: const RequestOptions(apiVersion: 'v1'),
+      );
+    }
+  }
+
+  Future<void> setApiKey(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('gemini_api_key', key);
+    _apiKey = key;
+    _model = GenerativeModel(
+      model: 'gemini-1.5-flash',
+      apiKey: _apiKey!,
+      requestOptions: const RequestOptions(apiVersion: 'v1'),
+    );
+  }
+
+  bool get isReady => _model != null;
+
+  Future<String> getResponse(String prompt) async {
+    if (_model == null) return "Please set your Gemini API key in settings.";
+
+    try {
+      final systemPrompt = """
 You are MaxRegner, an AI assistant with full control over the user's Android phone.
 Your goal is to help the user perform tasks using voice commands.
 You can:
@@ -33,39 +60,8 @@ COMMAND_END
 
 Current available actions: open_app, system_action (back, home, recents, notifications, quickSettings).
 """;
-
-  Future<void> init() async {
-    _apiKey = await _storage.read(key: 'gemini_api_key');
-    if (_apiKey != null && _apiKey!.isNotEmpty) {
-      _initModel();
-    }
-  }
-
-  void _initModel() {
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: _apiKey!,
-      requestOptions: const RequestOptions(apiVersion: 'v1'),
-      systemInstruction: Content.system(_systemPrompt),
-    );
-    _chat = _model!.startChat();
-  }
-
-  Future<void> setApiKey(String key) async {
-    await _storage.write(key: 'gemini_api_key', value: key);
-    _apiKey = key;
-    _initModel();
-  }
-
-  bool get isReady => _model != null;
-
-  Future<String> getResponse(String prompt) async {
-    if (_model == null || _chat == null) {
-      return "Please set your Gemini API key in settings.";
-    }
-
-    try {
-      final response = await _chat!.sendMessage(Content.text(prompt));
+      final content = [Content.text(systemPrompt + "\nUser: " + prompt)];
+      final response = await _model!.generateContent(content);
       return response.text ?? "No response from Gemini.";
     } catch (e) {
       return "Error: $e";

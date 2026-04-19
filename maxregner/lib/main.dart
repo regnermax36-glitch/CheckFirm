@@ -101,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
         AccessibilityServiceHandler.performAction(data['type']);
       }
     } catch (e) {
-      debugPrint("Error parsing command: $e");
+      print("Error parsing command: $e");
     }
   }
 
