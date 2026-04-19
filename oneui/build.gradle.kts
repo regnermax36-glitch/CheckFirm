@@ -25,6 +25,7 @@ android {
             }
             res {
                 srcDirs(
+                    "src/main/res",
                     "src/checkbox/res",
                     "src/divider/res",
                     "src/edittext/res",
