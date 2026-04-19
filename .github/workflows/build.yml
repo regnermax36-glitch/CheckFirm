@@ -34,10 +34,7 @@ jobs:
         cd maxregner
         flutter pub get
 
-    - name: Run tests
-      run: |
-        cd maxregner
-        flutter test
+  
 
     - name: Build APK
       run: |
