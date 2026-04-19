@@ -1,65 +1,45 @@
-name: Android Build
+name: Flutter Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master, feature/maxregner-ai-agent-v2-10415236592970828652 ]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    - name: set up JDK 17
+    - name: Set up Java
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
         distribution: 'temurin'
-        cache: gradle
+        java-version: '17'
+        cache: 'gradle'
+        cache-dependency-path: |
+          maxregner/android/*.gradle*
+          maxregner/android/gradle/wrapper/gradle-wrapper.properties
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        cache: true
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
-    - name: Create keystore.properties
+    - name: Install dependencies
       run: |
-        cat > keystore.properties <<'EOF'
-        storeFile=dummy.keystore
-        storePassword=dummy_password
-        keyAlias=dummy_alias
-        keyPassword=dummy_password
-        EOF
+        cd maxregner
+        flutter pub get
+  
 
-    - name: Create dummy keystore file
+    - name: Build APK
       run: |
-        keytool -genkey -v -keystore dummy.keystore -alias dummy_alias -keyalg RSA -keysize 2048 -validity 10000 -storepass dummy_password -keypass dummy_password -dname "CN=CI"
-
-    - name: Build with Gradle
-      run: ./gradlew assembleDebug --no-daemon
-
-    - name: Upload APK to Gofile.io
-      run: |
-        APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
-        if [ -n "$APK_PATH" ]; then
-          echo "Uploading $APK_PATH..."
-          SERVER=$(curl -s https://api.gofile.io/getServer | grep -oP '"server":"\K[^"]+')
-          if [ -n "$SERVER" ]; then
-            RESPONSE=$(curl -F "file=@$APK_PATH" "https://$SERVER.gofile.io/uploadFile")
-            DOWNLOAD_LINK=$(echo "$RESPONSE" | grep -oP '"downloadPage":"\K[^"]+')
-            echo "::notice::APK Download Link: $DOWNLOAD_LINK"
-          else
-            echo "Failed to get Gofile server"
-          fi
-        else
-          echo "APK not found"
-        fi
-
-    - name: Upload APK Artifact
+        cd maxregner
+        flutter build apk --release
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/*.apk
+        name: maxregner-apk
+        path: maxregner/build/app/outputs/flutter-apk/app-release.apk
