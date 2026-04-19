@@ -2,7 +2,7 @@ name: Flutter Build APK
 
 on:
   push:
-    branches: [ main, master, feature/maxregner-ai-agent-v2-10415236592970828652 ]
+    branches: [ main, master, "feature/**", "fix/**" ]
   pull_request:
     branches: [ main, master ]
 
@@ -26,8 +26,8 @@ jobs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.11.0'
         channel: 'stable'
+        cache: true
 
     - name: Install dependencies
       run: |
