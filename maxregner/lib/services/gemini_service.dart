@@ -9,11 +9,7 @@ class GeminiService {
     final prefs = await SharedPreferences.getInstance();
     _apiKey = prefs.getString('gemini_api_key');
     if (_apiKey != null && _apiKey!.isNotEmpty) {
-      _model = GenerativeModel(
-        model: 'gemini-1.5-flash',
-        apiKey: _apiKey!,
-        requestOptions: const RequestOptions(apiVersion: 'v1'),
-      );
+      _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey!, requestOptions: const RequestOptions(apiVersion: 'v1'));
     }
   }
 
@@ -21,11 +17,7 @@ class GeminiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('gemini_api_key', key);
     _apiKey = key;
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: _apiKey!,
-      requestOptions: const RequestOptions(apiVersion: 'v1'),
-    );
+    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey!, requestOptions: const RequestOptions(apiVersion: 'v1'));
   }
 
   bool get isReady => _model != null;
