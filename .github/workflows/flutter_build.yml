@@ -18,10 +18,6 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        cache: 'gradle'
-        cache-dependency-path: |
-          maxregner/android/*.gradle*
-          maxregner/android/gradle/wrapper/gradle-wrapper.properties
 
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
